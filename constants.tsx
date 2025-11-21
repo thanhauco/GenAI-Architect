@@ -135,6 +135,13 @@ export const CURRICULUM: Module[] = [
                 promptContext: "Explain the RAG Triad (Faithfulness, Answer Relevance, Context Relevance) and its importance in evaluating RAG systems. Provide a concise explanation of each metric. Then, demonstrate how to use the RAGAS library in Python to evaluate these metrics, including setting up the evaluator and processing results."
             },
             {
+                id: 'rag_metrics_trad',
+                title: "Traditional RAG Metrics",
+                description: "Precision, Recall, F1, and BLEU in RAG context.",
+                difficulty: Difficulty.ADVANCED,
+                promptContext: "Explain Precision, Recall, F1-score, and BLEU score in the context of RAG systems (retrieval vs generation evaluation). Discuss when to use them vs LLM-based evaluators. Provide Python code examples using `nltk` or `sklearn` to calculate these scores."
+            },
+            {
                 id: 'quantization',
                 title: "Optimization & Quantization",
                 description: "Running models efficiently.",
