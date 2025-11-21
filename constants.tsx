@@ -146,7 +146,7 @@ export const CURRICULUM: Module[] = [
                 title: "Model Monitoring & Drift",
                 description: "Observability in production.",
                 difficulty: Difficulty.INTERMEDIATE,
-                promptContext: "Explain Data Drift and Concept Drift. Provide a Python example using `scikit-learn` or `scipy` (KS Test) to detect drift between reference and production data distributions."
+                promptContext: "Explain Data Drift and Concept Drift. Provide a Python example using `scipy` (specifically the Kolmogorov-Smirnov test) to detect drift between two data distributions (reference vs production)."
             }
         ]
     },
