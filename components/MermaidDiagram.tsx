@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import mermaid from 'mermaid';
-import { ZoomIn, Maximize2, AlertTriangle, RefreshCcw } from 'lucide-react';
+import { ZoomIn, Maximize2, Minimize2, RefreshCcw, AlertTriangle } from 'lucide-react';
 
 interface ColorTheme {
   bg: string;
@@ -24,6 +24,8 @@ const NEON_COLORS: ColorTheme[] = [
   { bg: '#365314', border: '#bef264' }, // Lime
   { bg: '#831843', border: '#f472b6' }, // Pink
   { bg: '#312e81', border: '#818cf8' }, // Indigo
+  { bg: '#450a0a', border: '#f87171' }, // Red
+  { bg: '#14532d', border: '#4ade80' }, // Green
 ];
 
 // Initialize Mermaid
@@ -126,61 +128,48 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code, colorPalette }) =
     const randomizeColors = () => setRenderKey(prev => prev + 1);
 
     return (
-        <div className={`relative bg-slate-900/50 border border-slate-800 rounded-xl overflow-hidden transition-all duration-300 ${isExpanded ? 'fixed inset-4 z-[60] shadow-2xl flex flex-col border-blue-500/30 bg-slate-950' : 'w-full my-6'}`}>
-            <div className="absolute top-3 right-3 z-10 flex space-x-2">
-                 <button 
+        <div className={`relative bg-slate-900/50 border border-slate-800 rounded-xl overflow-hidden transition-all duration-300 ${isExpanded ? 'fixed inset-4 z-[60] shadow-2xl flex flex-col border-blue-500/30 bg-slate-950' : 'hover:border-slate-600'}`}>
+            
+            {/* Toolbar */}
+            <div className="absolute top-4 right-4 flex items-center space-x-2 z-10">
+                <button 
                     onClick={randomizeColors}
-                    className="p-2 bg-slate-800/80 hover:bg-slate-700 backdrop-blur-sm rounded-lg text-slate-400 hover:text-white transition-colors border border-slate-700"
+                    className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-blue-400 rounded-lg transition-colors"
                     title="Randomize Colors"
-                 >
+                >
                     <RefreshCcw className="w-4 h-4" />
-                 </button>
-                 <button 
+                </button>
+                <button 
                     onClick={toggleExpand}
-                    className="p-2 bg-slate-800/80 hover:bg-slate-700 backdrop-blur-sm rounded-lg text-slate-400 hover:text-white transition-colors border border-slate-700"
-                    title={isExpanded ? "Minimize" : "Maximize"}
-                 >
-                    {isExpanded ? <ZoomIn className="w-5 h-5 rotate-180" /> : <Maximize2 className="w-4 h-4" />}
-                 </button>
+                    className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-lg transition-colors"
+                    title={isExpanded ? "Collapse" : "Expand"}
+                >
+                    {isExpanded ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                </button>
             </div>
 
-            <div className={`p-6 overflow-auto flex items-center justify-center min-h-[300px] ${isExpanded ? 'flex-1' : ''}`}>
+            {/* Diagram Container */}
+            <div className={`p-6 overflow-auto flex items-center justify-center ${isExpanded ? 'flex-1 bg-[#0f172a]' : 'min-h-[300px]'}`}>
                 {error ? (
-                    <div className="text-red-400 text-sm flex flex-col items-center max-w-lg text-center">
+                    <div className="flex flex-col items-center text-red-400 p-8 text-center">
                         <AlertTriangle className="w-8 h-8 mb-2 opacity-80" />
-                        <span className="font-semibold mb-2">{error}</span>
-                        <details className="w-full text-left mt-2">
-                            <summary className="cursor-pointer text-xs text-slate-500 hover:text-slate-300">View Raw Code</summary>
-                            <pre className="mt-2 p-2 bg-slate-950 rounded text-xs text-slate-400 font-mono overflow-x-auto border border-slate-800">
-                                {code}
-                            </pre>
-                        </details>
+                        <p className="text-sm max-w-md">{error}</p>
+                        <pre className="mt-4 p-3 bg-slate-950 rounded text-xs text-slate-500 font-mono text-left w-full overflow-auto max-h-32">
+                            {code}
+                        </pre>
                     </div>
                 ) : svg ? (
                     <div 
                         dangerouslySetInnerHTML={{ __html: svg }} 
-                        className="w-full h-full flex justify-center items-center mermaid-svg-container"
-                        style={{ minWidth: '100%' }}
+                        className="w-full h-full flex items-center justify-center transition-opacity duration-500 opacity-100"
                     />
                 ) : (
                     <div className="flex flex-col items-center text-slate-500 animate-pulse">
-                        <div className="flex space-x-2 mb-3">
-                            <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce"></div>
-                            <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce delay-75"></div>
-                            <div className="w-2 h-2 bg-pink-400 rounded-full animate-bounce delay-150"></div>
-                        </div>
-                        <span className="text-sm font-mono text-cyan-400/70">Rendering Diagram...</span>
+                        <ZoomIn className="w-8 h-8 mb-2 opacity-50" />
+                        <span className="text-xs">Rendering Diagram...</span>
                     </div>
                 )}
             </div>
-            
-            {isExpanded && (
-                <div className="p-4 bg-slate-900 border-t border-slate-800 text-center">
-                    <button onClick={toggleExpand} className="text-slate-400 hover:text-white text-sm font-medium">
-                        Close View
-                    </button>
-                </div>
-            )}
         </div>
     );
 };
