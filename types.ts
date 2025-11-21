@@ -3,8 +3,10 @@ import React from 'react';
 export enum ModuleId {
     ML_FOUNDATIONS = 'ml_foundations',
     LLM_CONCEPTS = 'llm_concepts',
+    FRAMEWORKS = 'frameworks',
     MLOPS_CLOUD = 'mlops_cloud',
-    FRAMEWORKS = 'frameworks'
+    NLP_DEEP_DIVE = 'nlp_deep_dive',
+    PRODUCTION_ENG = 'production_eng'
 }
 
 export interface Topic {
