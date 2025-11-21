@@ -55,3 +55,9 @@ export interface ProjectLab {
     files: ProjectFile[];
     steps: string[];
 }
+
+export interface DesignChallenge {
+    title: string;
+    scenario: string;
+    initialQuestion: string;
+}

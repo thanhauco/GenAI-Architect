@@ -1,14 +1,15 @@
 import React from 'react';
 import { Module, Topic } from '../types';
-import { ChevronRight, Terminal } from 'lucide-react';
+import { ChevronRight, Terminal, ShieldCheck } from 'lucide-react';
 
 interface SidebarProps {
   modules: Module[];
   activeTopicId: string | null;
   onSelectTopic: (topic: Topic) => void;
+  onOpenDesignChallenge: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ modules, activeTopicId, onSelectTopic }) => {
+const Sidebar: React.FC<SidebarProps> = ({ modules, activeTopicId, onSelectTopic, onOpenDesignChallenge }) => {
   return (
     <aside className="w-72 bg-slate-950 border-r border-slate-800 h-full flex flex-col overflow-y-auto hidden md:flex">
       <div className="p-6 border-b border-slate-800">
@@ -19,7 +20,17 @@ const Sidebar: React.FC<SidebarProps> = ({ modules, activeTopicId, onSelectTopic
         <p className="text-xs text-slate-500 font-mono mt-2">Gen AI Technical Architect Prep</p>
       </div>
       
-      <div className="flex-1 py-4">
+      <div className="p-4">
+        <button 
+            onClick={onOpenDesignChallenge}
+            className="w-full flex items-center justify-center px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white rounded-xl shadow-lg shadow-purple-900/20 transition-all transform hover:scale-[1.02]"
+        >
+            <ShieldCheck className="w-4 h-4 mr-2" />
+            <span className="text-sm font-bold">System Design Sim</span>
+        </button>
+      </div>
+
+      <div className="flex-1 py-2">
         {modules.map((module) => (
           <div key={module.id} className="mb-6 px-4">
             <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3 flex items-center px-2">

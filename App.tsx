@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Sidebar from './components/Sidebar';
 import LessonView from './components/LessonView';
 import ChatAssistant from './components/ChatAssistant';
+import SystemDesignModal from './components/SystemDesignModal';
 import { CURRICULUM } from './constants';
 import { Topic } from './types';
 import { Menu } from 'lucide-react';
@@ -9,6 +10,7 @@ import { Menu } from 'lucide-react';
 const App: React.FC = () => {
   const [activeTopic, setActiveTopic] = useState<Topic | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [designModalOpen, setDesignModalOpen] = useState(false);
 
   const handleTopicSelect = (topic: Topic) => {
     setActiveTopic(topic);
@@ -38,7 +40,11 @@ const App: React.FC = () => {
              <Sidebar 
                 modules={CURRICULUM} 
                 activeTopicId={activeTopic?.id || null} 
-                onSelectTopic={handleTopicSelect} 
+                onSelectTopic={handleTopicSelect}
+                onOpenDesignChallenge={() => {
+                    setDesignModalOpen(true);
+                    setMobileMenuOpen(false);
+                }}
              />
           </div>
         </div>
@@ -48,7 +54,8 @@ const App: React.FC = () => {
       <Sidebar 
         modules={CURRICULUM} 
         activeTopicId={activeTopic?.id || null} 
-        onSelectTopic={handleTopicSelect} 
+        onSelectTopic={handleTopicSelect}
+        onOpenDesignChallenge={() => setDesignModalOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -63,6 +70,11 @@ const App: React.FC = () => {
       </main>
 
       <ChatAssistant />
+      
+      <SystemDesignModal 
+        isOpen={designModalOpen} 
+        onClose={() => setDesignModalOpen(false)} 
+      />
     </div>
   );
 };

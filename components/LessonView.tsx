@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Topic, GeneratedContent, ProjectLab, Difficulty } from '../types';
-import { generateLessonContent, generateProjectLab } from '../services/geminiService';
+import { generateLessonContent, generateProjectLab, generateArchitectureDiagram } from '../services/geminiService';
 import CodeBlock from './CodeBlock';
 import FileExplorer from './FileExplorer';
 import MLOpsDiagram from './MLOpsDiagram';
-import { Loader2, Lightbulb, BookOpen, AlertTriangle, Beaker, BookText, ChevronRight, RefreshCw } from 'lucide-react';
+import MermaidDiagram from './MermaidDiagram';
+import { Loader2, Lightbulb, BookOpen, AlertTriangle, Beaker, BookText, ChevronRight, RefreshCw, Network } from 'lucide-react';
 
 interface LessonViewProps {
   topic: Topic | null;
@@ -19,10 +20,12 @@ const LessonView: React.FC<LessonViewProps> = ({ topic }) => {
   // Loading States
   const [theoryLoading, setTheoryLoading] = useState(false);
   const [labLoading, setLabLoading] = useState(false);
+  const [diagramLoading, setDiagramLoading] = useState(false);
   
   // Content States
   const [theoryContent, setTheoryContent] = useState<GeneratedContent | null>(null);
   const [labContent, setLabContent] = useState<ProjectLab | null>(null);
+  const [mermaidCode, setMermaidCode] = useState<string | null>(null);
 
   const [error, setError] = useState<string | null>(null);
 
@@ -31,6 +34,7 @@ const LessonView: React.FC<LessonViewProps> = ({ topic }) => {
       // Reset and start fresh
       setError(null);
       setActiveTab('theory'); // Default to theory on new topic
+      setMermaidCode(null); // Reset diagram
       
       // Trigger both loads
       loadTheory(topic);
@@ -64,13 +68,22 @@ const LessonView: React.FC<LessonViewProps> = ({ topic }) => {
     }
   };
 
+  const handleGenerateDiagram = async () => {
+    if (!topic) return;
+    setDiagramLoading(true);
+    try {
+      const code = await generateArchitectureDiagram(topic.title + " - " + topic.description);
+      setMermaidCode(code);
+    } catch (err) {
+      console.error("Diagram generation failed");
+    } finally {
+      setDiagramLoading(false);
+    }
+  };
+
   const handleRegenerateLab = () => {
       if(topic) {
          // Note: In a real app we might want to bypass cache here. 
-         // For now, the service cache prevents simple regeneration without cache busting.
-         // We will rely on the service to handle a new request if we implement cache busting later.
-         // Current implementation serves cached, but the user intent is usually "try again".
-         // For this demo, we re-trigger loadLab.
          loadLab(topic, true);
       }
   };
@@ -220,6 +233,36 @@ const LessonView: React.FC<LessonViewProps> = ({ topic }) => {
                     {theoryContent.explanation}
                 </ReactMarkdown>
               </div>
+            </section>
+
+            {/* Dynamic Architecture Diagram Generator */}
+            <section className="border border-slate-800 rounded-xl p-6 bg-slate-900/30">
+                <div className="flex items-center justify-between mb-4">
+                     <h3 className="text-lg font-semibold text-slate-200 flex items-center">
+                        <Network className="w-5 h-5 mr-2 text-blue-400" />
+                        Architecture Diagram
+                    </h3>
+                    {!mermaidCode && (
+                        <button 
+                            onClick={handleGenerateDiagram}
+                            disabled={diagramLoading}
+                            className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm rounded-lg text-blue-400 transition-colors flex items-center"
+                        >
+                            {diagramLoading ? (
+                                <><Loader2 className="w-3 h-3 mr-2 animate-spin" /> Generating...</>
+                            ) : (
+                                'Visualize Architecture'
+                            )}
+                        </button>
+                    )}
+                </div>
+                
+                {mermaidCode && <MermaidDiagram code={mermaidCode} />}
+                {!mermaidCode && !diagramLoading && (
+                    <div className="text-center py-8 border-2 border-dashed border-slate-800 rounded-lg text-slate-500 text-sm">
+                        Click "Visualize" to generate a dynamic system architecture diagram for this topic.
+                    </div>
+                )}
             </section>
 
             <section>
