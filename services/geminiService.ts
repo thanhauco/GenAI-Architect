@@ -143,9 +143,15 @@ export const generateArchitectureDiagram = async (topic: string): Promise<string
             1. Return ONLY valid Mermaid.js code.
             2. Do NOT use Markdown formatting (no \`\`\`).
             3. Use 'graph TD' (Top-Down) or 'graph LR' (Left-Right).
-            4. Use standard shapes: [Rect], (Round), {Rhombus}, [(Database)], [[Subroutine]].
-            5. Avoid special characters in Node IDs.
-            6. Keep diagram depth reasonable (max 15 nodes).
+            4. Use standard shapes: 
+               - [Rectangle] for services
+               - (Round) for processes
+               - {Rhombus} for decisions
+               - [(Database)] for storage
+               - [[Subroutine]] for external modules
+            5. Use 'subgraph' to group related components (e.g., "Data Layer", "Model Serving").
+            6. Avoid special characters in Node IDs.
+            7. Keep diagram depth reasonable (max 15 nodes).
             `,
             config: {
                 responseMimeType: "text/plain",
