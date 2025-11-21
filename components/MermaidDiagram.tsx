@@ -1,13 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import mermaid from 'mermaid';
-import { ZoomIn, Maximize2, AlertTriangle } from 'lucide-react';
+import { ZoomIn, Maximize2, AlertTriangle, RefreshCcw } from 'lucide-react';
+
+interface ColorTheme {
+  bg: string;
+  border: string;
+}
 
 interface MermaidDiagramProps {
     code: string;
+    colorPalette?: ColorTheme[];
 }
 
 // Vibrant Neon Palette: { bg: Dark saturated background, border: Bright neon stroke }
-const NEON_COLORS = [
+const NEON_COLORS: ColorTheme[] = [
   { bg: '#2e1065', border: '#a78bfa' }, // Violet
   { bg: '#172554', border: '#60a5fa' }, // Blue
   { bg: '#064e3b', border: '#34d399' }, // Emerald
@@ -15,31 +21,36 @@ const NEON_COLORS = [
   { bg: '#431407', border: '#fb923c' }, // Orange
   { bg: '#164e63', border: '#22d3ee' }, // Cyan
   { bg: '#881337', border: '#fb7185' }, // Rose
-  { bg: '#1a2e05', border: '#a3e635' }, // Lime
-  { bg: '#4c0519', border: '#fda4af' }, // Pink
-  { bg: '#0f172a', border: '#94a3b8' }, // Slate (Default-ish fallback)
+  { bg: '#365314', border: '#bef264' }, // Lime
+  { bg: '#831843', border: '#f472b6' }, // Pink
+  { bg: '#312e81', border: '#818cf8' }, // Indigo
 ];
 
 // Initialize Mermaid
 mermaid.initialize({
     startOnLoad: false,
-    theme: 'base',
+    theme: 'base', // Use base to allow full overrides
     securityLevel: 'loose',
     fontFamily: 'Inter, sans-serif',
     themeVariables: {
         darkMode: true,
-        background: '#0f172a',
-        primaryTextColor: '#f8fafc', // White text for contrast on dark backgrounds
+        background: 'transparent', // Force transparent
+        primaryTextColor: '#f8fafc', // White text
         lineColor: '#64748b', // Slate-500 for connectors
-        mainBkg: '#1e293b',
+        mainBkg: '#1e293b', // Fallback node bg
         nodeBorder: '#38bdf8',
+        clusterBkg: 'rgba(30, 41, 59, 0.5)',
+        clusterBorder: '#475569',
+        titleColor: '#f1f5f9',
+        edgeLabelBackground: '#0f172a',
     }
 });
 
-const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code }) => {
+const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code, colorPalette }) => {
     const [svg, setSvg] = useState<string>('');
     const [error, setError] = useState<string | null>(null);
     const [isExpanded, setIsExpanded] = useState(false);
+    const [renderKey, setRenderKey] = useState(0); // To force color re-randomization
 
     useEffect(() => {
         const renderDiagram = async () => {
@@ -64,14 +75,19 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code }) => {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(rawSvg, "image/svg+xml");
                 
-                // Select all shapes that represent nodes (rectangles, circles, rhombuses/polygons)
-                // We avoid 'g.node label' to not mess up text
-                const shapes = doc.querySelectorAll('.node rect, .node circle, .node polygon, .node path');
+                // Force transparency on the SVG root
+                const svgElement = doc.documentElement;
+                svgElement.setAttribute('style', 'background-color: transparent !important; max-width: 100%;');
+                
+                // Select all shapes that represent nodes (rectangles, circles, rhombuses/polygons, ellipses)
+                const shapes = doc.querySelectorAll('.node rect, .node circle, .node polygon, .node path, .node ellipse');
+
+                // Determine which palette to use
+                const paletteToUse = colorPalette && colorPalette.length > 0 ? colorPalette : NEON_COLORS;
 
                 shapes.forEach((shape) => {
-                    // Pick a random color based on a simple hash of the shape's position or random
-                    // Using random here makes it vibrant every time
-                    const color = NEON_COLORS[Math.floor(Math.random() * NEON_COLORS.length)];
+                    // Pick a random color from the palette for EACH node
+                    const color = paletteToUse[Math.floor(Math.random() * paletteToUse.length)];
                     
                     // Apply styles directly to the SVG element
                     shape.setAttribute('fill', color.bg);
@@ -79,13 +95,20 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code }) => {
                     shape.setAttribute('stroke-width', '2');
                 });
 
-                // Optional: Style Subgraphs (Clusters) to be subtle
+                // Style Subgraphs (Clusters)
                 const clusters = doc.querySelectorAll('.cluster rect');
                 clusters.forEach((cluster) => {
-                    cluster.setAttribute('fill', 'rgba(30, 41, 59, 0.5)'); // slate-800 with opacity
+                    cluster.setAttribute('fill', 'rgba(30, 41, 59, 0.3)'); // Very transparent slate
                     cluster.setAttribute('stroke', '#475569'); // slate-600
                     cluster.setAttribute('stroke-width', '1');
                     cluster.setAttribute('stroke-dasharray', '4 4');
+                });
+                
+                // Style Lines/Edges
+                const edges = doc.querySelectorAll('.edgePath path');
+                edges.forEach((edge) => {
+                    edge.setAttribute('stroke', '#64748b');
+                    edge.setAttribute('stroke-width', '1.5');
                 });
 
                 setSvg(doc.documentElement.outerHTML);
@@ -97,13 +120,21 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code }) => {
         };
 
         renderDiagram();
-    }, [code]);
+    }, [code, colorPalette, renderKey]);
 
     const toggleExpand = () => setIsExpanded(!isExpanded);
+    const randomizeColors = () => setRenderKey(prev => prev + 1);
 
     return (
-        <div className={`relative bg-slate-900 border border-slate-800 rounded-xl overflow-hidden transition-all duration-300 ${isExpanded ? 'fixed inset-4 z-[60] shadow-2xl flex flex-col border-blue-500/30' : 'w-full my-6'}`}>
+        <div className={`relative bg-slate-900/50 border border-slate-800 rounded-xl overflow-hidden transition-all duration-300 ${isExpanded ? 'fixed inset-4 z-[60] shadow-2xl flex flex-col border-blue-500/30 bg-slate-950' : 'w-full my-6'}`}>
             <div className="absolute top-3 right-3 z-10 flex space-x-2">
+                 <button 
+                    onClick={randomizeColors}
+                    className="p-2 bg-slate-800/80 hover:bg-slate-700 backdrop-blur-sm rounded-lg text-slate-400 hover:text-white transition-colors border border-slate-700"
+                    title="Randomize Colors"
+                 >
+                    <RefreshCcw className="w-4 h-4" />
+                 </button>
                  <button 
                     onClick={toggleExpand}
                     className="p-2 bg-slate-800/80 hover:bg-slate-700 backdrop-blur-sm rounded-lg text-slate-400 hover:text-white transition-colors border border-slate-700"
@@ -113,7 +144,7 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code }) => {
                  </button>
             </div>
 
-            <div className={`p-6 overflow-auto flex items-center justify-center min-h-[300px] ${isExpanded ? 'flex-1 bg-slate-950/95' : ''}`}>
+            <div className={`p-6 overflow-auto flex items-center justify-center min-h-[300px] ${isExpanded ? 'flex-1' : ''}`}>
                 {error ? (
                     <div className="text-red-400 text-sm flex flex-col items-center max-w-lg text-center">
                         <AlertTriangle className="w-8 h-8 mb-2 opacity-80" />
@@ -128,7 +159,7 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code }) => {
                 ) : svg ? (
                     <div 
                         dangerouslySetInnerHTML={{ __html: svg }} 
-                        className="w-full h-full flex justify-center mermaid-svg-container"
+                        className="w-full h-full flex justify-center items-center mermaid-svg-container"
                         style={{ minWidth: '100%' }}
                     />
                 ) : (
@@ -138,7 +169,7 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code }) => {
                             <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce delay-75"></div>
                             <div className="w-2 h-2 bg-pink-400 rounded-full animate-bounce delay-150"></div>
                         </div>
-                        <span className="text-sm font-mono text-cyan-400/70">Designing Architecture...</span>
+                        <span className="text-sm font-mono text-cyan-400/70">Rendering Diagram...</span>
                     </div>
                 )}
             </div>
