@@ -3,7 +3,7 @@ import { Topic, GeneratedContent, ProjectLab, Difficulty } from '../types';
 import { generateLessonContent, generateProjectLab } from '../services/geminiService';
 import CodeBlock from './CodeBlock';
 import FileExplorer from './FileExplorer';
-import { Loader2, Lightbulb, BookOpen, AlertTriangle, Beaker, BookText } from 'lucide-react';
+import { Loader2, Lightbulb, BookOpen, AlertTriangle, Beaker, BookText, ChevronRight, RefreshCw } from 'lucide-react';
 
 interface LessonViewProps {
   topic: Topic | null;
@@ -49,7 +49,7 @@ const LessonView: React.FC<LessonViewProps> = ({ topic }) => {
   };
 
   const loadLab = async () => {
-    if (!topic || labContent) return; // Don't reload if exists
+    if (!topic) return;
     
     setLoading(true);
     setError(null);
@@ -192,6 +192,28 @@ const LessonView: React.FC<LessonViewProps> = ({ topic }) => {
                 "{theoryContent.interviewTip}"
               </p>
             </section>
+
+            {/* CTA for Lab */}
+            <div className="mt-12 p-1 rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg shadow-purple-900/20">
+                <div className="bg-slate-900 rounded-xl p-6 flex flex-col md:flex-row items-center justify-between">
+                    <div className="mb-4 md:mb-0">
+                        <h3 className="text-lg font-bold text-white mb-1 flex items-center">
+                            <Beaker className="w-5 h-5 mr-2 text-purple-400" />
+                            Ready to build this?
+                        </h3>
+                        <p className="text-slate-400 text-sm">
+                            Generate a complete Python project structure with <span className="text-white font-medium">{topic.difficulty}</span> level challenges.
+                        </p>
+                    </div>
+                    <button
+                        onClick={() => handleTabChange('lab')}
+                        className="px-6 py-2.5 bg-white text-slate-900 hover:bg-blue-50 font-semibold rounded-lg transition-colors flex items-center whitespace-nowrap shadow-md"
+                    >
+                        Start Project Lab
+                        <ChevronRight className="w-4 h-4 ml-2" />
+                    </button>
+                </div>
+            </div>
           </div>
         )}
 
@@ -199,17 +221,29 @@ const LessonView: React.FC<LessonViewProps> = ({ topic }) => {
         {!loading && activeTab === 'lab' && labContent && (
             <div className="space-y-8 animate-fadeIn">
                 <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-6">
-                    <h2 className="text-2xl font-bold text-purple-300 mb-2">{labContent.title}</h2>
-                    <p className="text-slate-300 mb-4">{labContent.description}</p>
-                    
-                    <div className="flex flex-wrap gap-2 mb-6">
-                        {labContent.prerequisites.map((req, idx) => (
-                            <span key={idx} className="px-2 py-1 bg-slate-900 border border-slate-700 rounded text-xs text-slate-400 font-mono">
-                                {req}
-                            </span>
-                        ))}
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                         <h2 className="text-2xl font-bold text-purple-300 mb-2">{labContent.title}</h2>
+                         <div className="flex flex-wrap gap-2">
+                            {labContent.prerequisites.map((req, idx) => (
+                                <span key={idx} className="px-2 py-1 bg-slate-900 border border-slate-700 rounded text-xs text-slate-400 font-mono">
+                                    {req}
+                                </span>
+                            ))}
+                        </div>
+                      </div>
+                      <button 
+                        onClick={loadLab} 
+                        className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors flex items-center text-xs"
+                        title="Regenerate Lab"
+                      >
+                        <RefreshCw className="w-4 h-4 mr-1" />
+                        Regenerate
+                      </button>
                     </div>
-
+                    
+                    <p className="text-slate-300 mb-6">{labContent.description}</p>
+                    
                     <div className="space-y-4">
                         <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">Lab Instructions</h3>
                         <ul className="space-y-2">
