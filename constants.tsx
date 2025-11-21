@@ -164,10 +164,10 @@ export const CURRICULUM: Module[] = [
             },
             {
                 id: 'cicd_ml',
-                title: "CI/CD for Machine Learning",
-                description: "Automating training and deployment pipelines.",
+                title: "CI/CD with GitHub Actions",
+                description: "Automating ML workflows: CI, CD, and Deployment.",
                 difficulty: Difficulty.ADVANCED,
-                promptContext: "Design a CI/CD pipeline for an ML project (Github Actions). Explain the role of a Feature Store and Model Registry."
+                promptContext: "Explain Continuous Integration (CI), Continuous Delivery (CD), and Deployment for Machine Learning models. Provide a sample GitHub Actions workflow file (.yaml) that automates linting, testing, model training, and deployment."
             },
             {
                 id: 'aws_gcp_arch',
