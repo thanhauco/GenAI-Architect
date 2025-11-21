@@ -132,7 +132,7 @@ export const CURRICULUM: Module[] = [
                 title: "RAG Evaluation & RAGAS",
                 description: "RAG Triad (Faithfulness, Relevance) & RAGAS Implementation.",
                 difficulty: Difficulty.ADVANCED,
-                promptContext: "Provide a detailed technical explanation of the RAGAS library and its role in measuring the 'RAG Triad': Faithfulness, Answer Relevance, and Context Relevance. Provide a complete Python code example using `ragas` to evaluate a RAG system, including setting up an EvaluationDataset and running the `evaluate` function."
+                promptContext: "Explain the RAG Triad (Faithfulness, Answer Relevance, Context Relevance) and its importance in evaluating RAG systems. Provide a concise explanation of each metric. Then, demonstrate how to use the RAGAS library in Python to evaluate these metrics, including setting up the evaluator and processing results."
             },
             {
                 id: 'quantization',
