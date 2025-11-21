@@ -6,7 +6,21 @@ interface MermaidDiagramProps {
     code: string;
 }
 
-// Initialize with a vibrant "Cyberpunk/Neon" Dark Theme
+// Vibrant Neon Palette: { bg: Dark saturated background, border: Bright neon stroke }
+const NEON_COLORS = [
+  { bg: '#2e1065', border: '#a78bfa' }, // Violet
+  { bg: '#172554', border: '#60a5fa' }, // Blue
+  { bg: '#064e3b', border: '#34d399' }, // Emerald
+  { bg: '#4a044e', border: '#e879f9' }, // Fuchsia
+  { bg: '#431407', border: '#fb923c' }, // Orange
+  { bg: '#164e63', border: '#22d3ee' }, // Cyan
+  { bg: '#881337', border: '#fb7185' }, // Rose
+  { bg: '#1a2e05', border: '#a3e635' }, // Lime
+  { bg: '#4c0519', border: '#fda4af' }, // Pink
+  { bg: '#0f172a', border: '#94a3b8' }, // Slate (Default-ish fallback)
+];
+
+// Initialize Mermaid
 mermaid.initialize({
     startOnLoad: false,
     theme: 'base',
@@ -14,33 +28,11 @@ mermaid.initialize({
     fontFamily: 'Inter, sans-serif',
     themeVariables: {
         darkMode: true,
-        background: '#0f172a', // Match app bg (slate-950)
-        
-        // Nodes (Dark fill, Bright Border)
-        primaryColor: '#1e293b', // slate-800
-        primaryTextColor: '#f8fafc', // slate-50
-        primaryBorderColor: '#38bdf8', // sky-400 (Cyan-ish)
-        
-        // Lines
-        lineColor: '#818cf8', // indigo-400
-        
-        // Text
-        textColor: '#e2e8f0',
-
-        // Accents for specific shapes if supported
-        secondaryColor: '#c026d3', // fuchsia-600
-        tertiaryColor: '#ea580c', // orange-600
-        
-        // Specific overrides
-        mainBkg: '#1e293b', // Node background
-        nodeBorder: '#38bdf8', // Node border
-        
-        // Clusters (Subgraphs)
-        clusterBkg: 'rgba(59, 130, 246, 0.05)', // Very faint blue tint
-        clusterBorder: '#475569', // slate-600
-        
-        // Labels
-        edgeLabelBackground: '#0f172a', // Match background so text floats clearly
+        background: '#0f172a',
+        primaryTextColor: '#f8fafc', // White text for contrast on dark backgrounds
+        lineColor: '#64748b', // Slate-500 for connectors
+        mainBkg: '#1e293b',
+        nodeBorder: '#38bdf8',
     }
 });
 
@@ -53,12 +45,11 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code }) => {
         const renderDiagram = async () => {
             if (!code) return;
             
-            // Reset state for new code
+            // Reset state
             setSvg('');
             setError(null);
 
             try {
-                // Defensive cleanup of the code string
                 const cleanCode = code
                     .replace(/```mermaid/g, '')
                     .replace(/```/g, '')
@@ -66,12 +57,42 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code }) => {
 
                 const id = `mermaid-${Math.random().toString(36).substr(2, 9)}`;
                 
-                // Render the diagram to an SVG string
-                const { svg } = await mermaid.render(id, cleanCode);
-                setSvg(svg);
+                // 1. Render the SVG
+                const { svg: rawSvg } = await mermaid.render(id, cleanCode);
+
+                // 2. Post-process the SVG to inject random neon colors
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(rawSvg, "image/svg+xml");
+                
+                // Select all shapes that represent nodes (rectangles, circles, rhombuses/polygons)
+                // We avoid 'g.node label' to not mess up text
+                const shapes = doc.querySelectorAll('.node rect, .node circle, .node polygon, .node path');
+
+                shapes.forEach((shape) => {
+                    // Pick a random color based on a simple hash of the shape's position or random
+                    // Using random here makes it vibrant every time
+                    const color = NEON_COLORS[Math.floor(Math.random() * NEON_COLORS.length)];
+                    
+                    // Apply styles directly to the SVG element
+                    shape.setAttribute('fill', color.bg);
+                    shape.setAttribute('stroke', color.border);
+                    shape.setAttribute('stroke-width', '2');
+                });
+
+                // Optional: Style Subgraphs (Clusters) to be subtle
+                const clusters = doc.querySelectorAll('.cluster rect');
+                clusters.forEach((cluster) => {
+                    cluster.setAttribute('fill', 'rgba(30, 41, 59, 0.5)'); // slate-800 with opacity
+                    cluster.setAttribute('stroke', '#475569'); // slate-600
+                    cluster.setAttribute('stroke-width', '1');
+                    cluster.setAttribute('stroke-dasharray', '4 4');
+                });
+
+                setSvg(doc.documentElement.outerHTML);
+
             } catch (err) {
                 console.error("Mermaid Render Error:", err);
-                setError("Failed to render diagram. The generated syntax might be invalid.");
+                setError("Failed to render diagram. The AI generated invalid syntax.");
             }
         };
 
@@ -114,8 +135,8 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code }) => {
                     <div className="flex flex-col items-center text-slate-500 animate-pulse">
                         <div className="flex space-x-2 mb-3">
                             <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce"></div>
-                            <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce delay-75"></div>
-                            <div className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce delay-150"></div>
+                            <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce delay-75"></div>
+                            <div className="w-2 h-2 bg-pink-400 rounded-full animate-bounce delay-150"></div>
                         </div>
                         <span className="text-sm font-mono text-cyan-400/70">Designing Architecture...</span>
                     </div>
