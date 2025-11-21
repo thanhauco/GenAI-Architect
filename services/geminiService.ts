@@ -137,21 +137,24 @@ export const generateArchitectureDiagram = async (topic: string): Promise<string
     try {
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
-            contents: `Create a Mermaid.js diagram code for the architecture of: "${topic}".
+            contents: `Generate a Mermaid.js diagram code for the architecture of: "${topic}".
             
-            Rules:
-            1. Use 'graph LR' or 'graph TD'.
-            2. Use subgraphs to represent cloud components (e.g. AWS/GCP zones, Docker containers).
-            3. Keep node labels short but descriptive.
-            4. Return ONLY the raw mermaid code string, no markdown code blocks.
-            5. Do not use 'syntax error' or text that breaks mermaid.
+            STRICT INSTRUCTIONS:
+            1. Return ONLY valid Mermaid.js code.
+            2. Do NOT use Markdown formatting (no \`\`\`).
+            3. Use 'graph TD' (Top-Down) or 'graph LR' (Left-Right).
+            4. Use standard shapes: [Rect], (Round), {Rhombus}, [(Database)], [[Subroutine]].
+            5. Avoid special characters in Node IDs.
+            6. Keep diagram depth reasonable (max 15 nodes).
             `,
             config: {
                 responseMimeType: "text/plain",
             }
         });
 
+        // Cleanup potential markdown residue
         const text = response.text?.replace(/```mermaid/g, '').replace(/```/g, '').trim();
+        
         if (text) {
             diagramCache.set(topic, text);
             return text;
