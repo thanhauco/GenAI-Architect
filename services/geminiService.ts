@@ -5,7 +5,16 @@ import { GeneratedContent, ProjectLab } from "../types";
 const apiKey = process.env.API_KEY || '';
 const ai = new GoogleGenAI({ apiKey });
 
+// In-memory Cache
+const theoryCache = new Map<string, GeneratedContent>();
+const labCache = new Map<string, ProjectLab>();
+
 export const generateLessonContent = async (topicContext: string): Promise<GeneratedContent> => {
+    // Check Cache
+    if (theoryCache.has(topicContext)) {
+        return theoryCache.get(topicContext)!;
+    }
+
     try {
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
@@ -29,7 +38,12 @@ export const generateLessonContent = async (topicContext: string): Promise<Gener
         const text = response.text;
         if (!text) throw new Error("No content generated");
         
-        return JSON.parse(text) as GeneratedContent;
+        const data = JSON.parse(text) as GeneratedContent;
+        
+        // Set Cache
+        theoryCache.set(topicContext, data);
+        
+        return data;
     } catch (error) {
         console.error("Gemini API Error:", error);
         throw error;
@@ -37,6 +51,13 @@ export const generateLessonContent = async (topicContext: string): Promise<Gener
 };
 
 export const generateProjectLab = async (topicContext: string, difficulty: string): Promise<ProjectLab> => {
+    const cacheKey = `${topicContext}-${difficulty}`;
+    
+    // Check Cache
+    if (labCache.has(cacheKey)) {
+        return labCache.get(cacheKey)!;
+    }
+
     try {
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
@@ -77,7 +98,12 @@ export const generateProjectLab = async (topicContext: string, difficulty: strin
         const text = response.text;
         if (!text) throw new Error("No project generated");
         
-        return JSON.parse(text) as ProjectLab;
+        const data = JSON.parse(text) as ProjectLab;
+        
+        // Set Cache
+        labCache.set(cacheKey, data);
+        
+        return data;
     } catch (error) {
         console.error("Gemini API Error (Project):", error);
         throw error;

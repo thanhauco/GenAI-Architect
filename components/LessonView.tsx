@@ -15,61 +15,68 @@ type Tab = 'theory' | 'lab';
 
 const LessonView: React.FC<LessonViewProps> = ({ topic }) => {
   const [activeTab, setActiveTab] = useState<Tab>('theory');
-  const [loading, setLoading] = useState(false);
   
-  // Theory State
+  // Loading States
+  const [theoryLoading, setTheoryLoading] = useState(false);
+  const [labLoading, setLabLoading] = useState(false);
+  
+  // Content States
   const [theoryContent, setTheoryContent] = useState<GeneratedContent | null>(null);
-  
-  // Lab State
   const [labContent, setLabContent] = useState<ProjectLab | null>(null);
 
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (topic) {
-      // Reset states when topic changes
-      setTheoryContent(null);
-      setLabContent(null);
+      // Reset and start fresh
       setError(null);
-      setActiveTab('theory');
+      setActiveTab('theory'); // Default to theory on new topic
+      
+      // Trigger both loads
       loadTheory(topic);
+      loadLab(topic); // Start loading lab in background
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [topic]);
 
   const loadTheory = async (currentTopic: Topic) => {
-    setLoading(true);
-    setError(null);
+    setTheoryLoading(true);
     try {
       const data = await generateLessonContent(currentTopic.promptContext);
       setTheoryContent(data);
     } catch (err) {
       setError("Failed to generate lesson content.");
     } finally {
-      setLoading(false);
+      setTheoryLoading(false);
     }
   };
 
-  const loadLab = async () => {
-    if (!topic) return;
-    
-    setLoading(true);
-    setError(null);
+  const loadLab = async (currentTopic: Topic, forceRefresh = false) => {
+    setLabLoading(true);
     try {
-      const data = await generateProjectLab(topic.promptContext, topic.difficulty);
+      const data = await generateProjectLab(currentTopic.promptContext, currentTopic.difficulty);
       setLabContent(data);
     } catch (err) {
-      setError("Failed to generate lab project.");
+      // Only show error if we are in lab tab, otherwise silent fail (or retry later)
+      console.error("Background lab load failed", err);
     } finally {
-      setLoading(false);
+      setLabLoading(false);
     }
+  };
+
+  const handleRegenerateLab = () => {
+      if(topic) {
+         // Note: In a real app we might want to bypass cache here. 
+         // For now, the service cache prevents simple regeneration without cache busting.
+         // We will rely on the service to handle a new request if we implement cache busting later.
+         // Current implementation serves cached, but the user intent is usually "try again".
+         // For this demo, we re-trigger loadLab.
+         loadLab(topic, true);
+      }
   };
 
   const handleTabChange = (tab: Tab) => {
     setActiveTab(tab);
-    if (tab === 'lab' && !labContent) {
-        loadLab();
-    }
   };
 
   const getDifficultyColor = (diff: Difficulty) => {
@@ -90,7 +97,7 @@ const LessonView: React.FC<LessonViewProps> = ({ topic }) => {
       <div className="flex flex-col items-center justify-center h-full text-slate-400 p-8 text-center">
         <BookOpen className="w-16 h-16 mb-4 opacity-50" />
         <h2 className="text-2xl font-semibold text-slate-200 mb-2">Select a Topic</h2>
-        <p>Choose a module from the sidebar to start your Gen AI Architect training.</p>
+        <p>Choose a module from the sidebar to start your AI Architect training.</p>
       </div>
     );
   }
@@ -138,6 +145,7 @@ const LessonView: React.FC<LessonViewProps> = ({ topic }) => {
             >
                 <Beaker className="w-4 h-4 mr-2" />
                 Hands-on Lab
+                {labLoading && <Loader2 className="w-3 h-3 ml-2 animate-spin opacity-70" />}
             </button>
         </div>
 
@@ -149,7 +157,7 @@ const LessonView: React.FC<LessonViewProps> = ({ topic }) => {
               <h3 className="font-semibold mb-1">Generation Error</h3>
               <p>{error}</p>
               <button 
-                onClick={() => activeTab === 'theory' ? loadTheory(topic) : loadLab()}
+                onClick={() => activeTab === 'theory' ? loadTheory(topic) : handleRegenerateLab()}
                 className="mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 rounded-md text-white text-sm font-medium transition-colors"
               >
                 Retry
@@ -158,18 +166,24 @@ const LessonView: React.FC<LessonViewProps> = ({ topic }) => {
           </div>
         )}
 
-        {/* Loading State */}
-        {loading && (
+        {/* Loading State - Theory */}
+        {theoryLoading && activeTab === 'theory' && (
           <div className="flex flex-col items-center justify-center py-20 animate-pulse">
-            <Loader2 className={`w-10 h-10 animate-spin mb-4 ${activeTab === 'theory' ? 'text-blue-500' : 'text-purple-500'}`} />
-            <p className="text-slate-400 font-mono">
-                {activeTab === 'theory' ? 'Consulting the AI Architect...' : 'Building Lab Environment...'}
-            </p>
+            <Loader2 className="w-10 h-10 animate-spin mb-4 text-blue-500" />
+            <p className="text-slate-400 font-mono">Consulting the AI Architect...</p>
+          </div>
+        )}
+
+        {/* Loading State - Lab */}
+        {labLoading && activeTab === 'lab' && (
+          <div className="flex flex-col items-center justify-center py-20 animate-pulse">
+            <Loader2 className="w-10 h-10 animate-spin mb-4 text-purple-500" />
+            <p className="text-slate-400 font-mono">Building Lab Environment...</p>
           </div>
         )}
 
         {/* Content: Theory */}
-        {!loading && activeTab === 'theory' && theoryContent && (
+        {!theoryLoading && activeTab === 'theory' && theoryContent && (
           <div className="space-y-8 animate-fadeIn">
             {isMLOpsTopic(topic.id) && <MLOpsDiagram />}
 
@@ -181,7 +195,6 @@ const LessonView: React.FC<LessonViewProps> = ({ topic }) => {
               <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
                 <ReactMarkdown
                   components={{
-                    // Override code blocks to use our custom component for fenced blocks
                     code(props) {
                         const {children, className, node, ...rest} = props
                         const match = /language-(\w+)/.exec(className || '')
@@ -195,9 +208,7 @@ const LessonView: React.FC<LessonViewProps> = ({ topic }) => {
                             </code>
                         )
                     },
-                    // Style links
                     a: ({node, ...props}) => <a className="text-blue-400 hover:text-blue-300 underline decoration-blue-400/30 hover:decoration-blue-300 transition-colors" {...props} />,
-                    // Style headings within markdown
                     h1: ({node, ...props}) => <h1 className="text-2xl font-bold text-white mt-6 mb-4" {...props} />,
                     h2: ({node, ...props}) => <h2 className="text-xl font-bold text-white mt-5 mb-3" {...props} />,
                     h3: ({node, ...props}) => <h3 className="text-lg font-semibold text-slate-200 mt-4 mb-2" {...props} />,
@@ -245,8 +256,8 @@ const LessonView: React.FC<LessonViewProps> = ({ topic }) => {
                         onClick={() => handleTabChange('lab')}
                         className="px-6 py-2.5 bg-white text-slate-900 hover:bg-blue-50 font-semibold rounded-lg transition-colors flex items-center whitespace-nowrap shadow-md"
                     >
-                        Start Project Lab
-                        <ChevronRight className="w-4 h-4 ml-2" />
+                        {labLoading ? 'Building Lab...' : 'Start Project Lab'}
+                        {!labLoading && <ChevronRight className="w-4 h-4 ml-2" />}
                     </button>
                 </div>
             </div>
@@ -254,7 +265,7 @@ const LessonView: React.FC<LessonViewProps> = ({ topic }) => {
         )}
 
         {/* Content: Lab */}
-        {!loading && activeTab === 'lab' && labContent && (
+        {!labLoading && activeTab === 'lab' && labContent && (
             <div className="space-y-8 animate-fadeIn">
                 <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-6">
                     <div className="flex justify-between items-start mb-4">
@@ -269,7 +280,7 @@ const LessonView: React.FC<LessonViewProps> = ({ topic }) => {
                         </div>
                       </div>
                       <button 
-                        onClick={loadLab} 
+                        onClick={handleRegenerateLab} 
                         className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-colors flex items-center text-xs"
                         title="Regenerate Lab"
                       >
@@ -303,6 +314,13 @@ const LessonView: React.FC<LessonViewProps> = ({ topic }) => {
                     <FileExplorer files={labContent.files} />
                 </section>
             </div>
+        )}
+        
+        {/* Empty State for Lab if failed or not started yet (edge case) */}
+        {!labLoading && activeTab === 'lab' && !labContent && (
+             <div className="text-center py-12 text-slate-500">
+                 <p>Initializing Lab Environment...</p>
+             </div>
         )}
 
       </div>

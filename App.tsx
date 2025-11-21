@@ -25,7 +25,7 @@ const App: React.FC = () => {
         >
           <Menu className="w-6 h-6" />
         </button>
-        <span className="ml-4 font-bold text-white">GenAI Architect Prep</span>
+        <span className="ml-4 font-bold text-white">AI Architect Training</span>
       </div>
 
       {/* Mobile Sidebar Overlay */}

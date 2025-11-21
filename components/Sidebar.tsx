@@ -14,7 +14,7 @@ const Sidebar: React.FC<SidebarProps> = ({ modules, activeTopicId, onSelectTopic
       <div className="p-6 border-b border-slate-800">
         <div className="flex items-center space-x-3 text-blue-500 mb-1">
             <Terminal className="w-6 h-6" />
-            <span className="font-bold text-lg tracking-wider text-white">ARCHITECT<span className="text-blue-500">.AI</span></span>
+            <span className="font-bold text-lg tracking-wider text-white">AI ARCHITECT<span className="text-blue-500"> TRAINING</span></span>
         </div>
         <p className="text-xs text-slate-500 font-mono mt-2">Gen AI Technical Architect Prep</p>
       </div>

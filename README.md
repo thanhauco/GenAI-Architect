@@ -1,4 +1,4 @@
-# GenAI Architect Prep
+# AI Architect Training
 
 An interactive, AI-powered learning platform designed to prepare candidates for **Senior Gen AI Technical Architect** roles. This application provides a structured curriculum covering RAG, MLOps, Python, and Advanced NLP, generating real-time lessons and code examples using the Google Gemini API.
 
@@ -10,6 +10,7 @@ To bridge the gap between general ML knowledge and the specific requirements of 
 - **Dynamic Curriculum**: 6 specialized modules derived from real-world job descriptions.
 - **AI-Generated Lessons**: Uses `gemini-2.5-flash` to generate deep-dive explanations, "Architect's View" trade-offs, and production-ready Python code.
 - **Interactive Chat Mentor**: A floating assistant (using `gemini-2.5-flash`) to answer specific architectural questions and debug concepts in real-time.
+- **Smart Caching**: Instant load times for revisited topics and background pre-fetching for labs.
 - **Syntax Highlighting**: Clean, copyable code blocks for Python examples (PyTorch, LangChain, Scikit-Learn).
 - **Responsive Design**: Built with Tailwind CSS for a seamless experience on mobile and desktop.
 
