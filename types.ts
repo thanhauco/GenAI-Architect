@@ -9,10 +9,17 @@ export enum ModuleId {
     PRODUCTION_ENG = 'production_eng'
 }
 
+export enum Difficulty {
+    BASIC = 'Basic',
+    INTERMEDIATE = 'Intermediate',
+    ADVANCED = 'Advanced'
+}
+
 export interface Topic {
     id: string;
     title: string;
     description: string;
+    difficulty: Difficulty;
     promptContext: string; // Specific context to send to Gemini
 }
 
@@ -33,4 +40,18 @@ export interface GeneratedContent {
     explanation: string;
     code: string;
     interviewTip: string;
+}
+
+export interface ProjectFile {
+    name: string;
+    language: string;
+    content: string;
+}
+
+export interface ProjectLab {
+    title: string;
+    description: string;
+    prerequisites: string[];
+    files: ProjectFile[];
+    steps: string[];
 }
