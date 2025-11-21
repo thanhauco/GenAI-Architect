@@ -130,9 +130,9 @@ export const CURRICULUM: Module[] = [
             {
                 id: 'rag_eval',
                 title: "Evaluating RAG Systems",
-                description: "Metrics: Faithfulness, Answer Relevance.",
+                description: "The RAG Triad & RAGAS Metrics.",
                 difficulty: Difficulty.ADVANCED,
-                promptContext: "Explain the 'RAG Triad' for evaluation. Provide a Python script (using logic similar to RAGAS) to calculate semantic similarity or faithfulness using an LLM as a judge."
+                promptContext: "Explain the 'RAG Triad' (Faithfulness, Answer Relevance, Context Relevance) for evaluating RAG systems. Provide a Python code example using the `ragas` library to calculate these metrics using an LLM as a judge."
             },
             {
                 id: 'quantization',
