@@ -3,6 +3,7 @@ import { Topic, GeneratedContent, ProjectLab, Difficulty } from '../types';
 import { generateLessonContent, generateProjectLab } from '../services/geminiService';
 import CodeBlock from './CodeBlock';
 import FileExplorer from './FileExplorer';
+import MLOpsDiagram from './MLOpsDiagram';
 import { Loader2, Lightbulb, BookOpen, AlertTriangle, Beaker, BookText, ChevronRight, RefreshCw } from 'lucide-react';
 
 interface LessonViewProps {
@@ -77,6 +78,10 @@ const LessonView: React.FC<LessonViewProps> = ({ topic }) => {
           case Difficulty.ADVANCED: return 'bg-red-500/10 text-red-400 border-red-500/20';
           default: return 'bg-blue-500/10 text-blue-400 border-blue-500/20';
       }
+  };
+
+  const isMLOpsTopic = (topicId: string) => {
+      return ['docker_k8s', 'cicd_ml', 'aws_gcp_arch', 'monitoring_drift'].includes(topicId);
   };
 
   if (!topic) {
@@ -165,6 +170,8 @@ const LessonView: React.FC<LessonViewProps> = ({ topic }) => {
         {/* Content: Theory */}
         {!loading && activeTab === 'theory' && theoryContent && (
           <div className="space-y-8 animate-fadeIn">
+            {isMLOpsTopic(topic.id) && <MLOpsDiagram />}
+
             <section className="prose prose-invert prose-slate max-w-none">
               <h3 className="text-xl font-semibold text-blue-300 flex items-center mb-4">
                 <BookOpen className="w-5 h-5 mr-2" />
