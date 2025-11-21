@@ -1,0 +1,5 @@
+{
+  "name": "GenAI Architect Prep",
+  "description": "An interactive learning platform to master Gen AI Technical Architect skills (RAG, MLOps, LangChain) using Python, powered by Gemini.",
+  "requestFramePermissions": []
+}
