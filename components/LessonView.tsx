@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { Topic, GeneratedContent, ProjectLab, Difficulty } from '../types';
 import { generateLessonContent, generateProjectLab } from '../services/geminiService';
 import CodeBlock from './CodeBlock';
@@ -172,13 +173,41 @@ const LessonView: React.FC<LessonViewProps> = ({ topic }) => {
           <div className="space-y-8 animate-fadeIn">
             {isMLOpsTopic(topic.id) && <MLOpsDiagram />}
 
-            <section className="prose prose-invert prose-slate max-w-none">
-              <h3 className="text-xl font-semibold text-blue-300 flex items-center mb-4">
+            <section className="prose prose-invert prose-slate max-w-none prose-p:leading-relaxed prose-li:marker:text-blue-500 prose-headings:text-slate-200">
+              <h3 className="text-xl font-semibold text-blue-300 flex items-center mb-4 not-prose">
                 <BookOpen className="w-5 h-5 mr-2" />
                 Architectural Overview
               </h3>
-              <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50 text-slate-300 leading-relaxed whitespace-pre-wrap">
-                {theoryContent.explanation}
+              <div className="bg-slate-800/50 rounded-xl p-6 border border-slate-700/50">
+                <ReactMarkdown
+                  components={{
+                    // Override code blocks to use our custom component for fenced blocks
+                    code(props) {
+                        const {children, className, node, ...rest} = props
+                        const match = /language-(\w+)/.exec(className || '')
+                        return match ? (
+                            <div className="not-prose my-4">
+                                <CodeBlock code={String(children).replace(/\n$/, '')} language={match[1]} />
+                            </div>
+                        ) : (
+                            <code className="bg-slate-700/50 px-1.5 py-0.5 rounded text-sm font-mono text-blue-200 border border-slate-600/50" {...rest}>
+                                {children}
+                            </code>
+                        )
+                    },
+                    // Style links
+                    a: ({node, ...props}) => <a className="text-blue-400 hover:text-blue-300 underline decoration-blue-400/30 hover:decoration-blue-300 transition-colors" {...props} />,
+                    // Style headings within markdown
+                    h1: ({node, ...props}) => <h1 className="text-2xl font-bold text-white mt-6 mb-4" {...props} />,
+                    h2: ({node, ...props}) => <h2 className="text-xl font-bold text-white mt-5 mb-3" {...props} />,
+                    h3: ({node, ...props}) => <h3 className="text-lg font-semibold text-slate-200 mt-4 mb-2" {...props} />,
+                    ul: ({node, ...props}) => <ul className="list-disc list-outside ml-5 space-y-2 my-4 text-slate-300" {...props} />,
+                    ol: ({node, ...props}) => <ol className="list-decimal list-outside ml-5 space-y-2 my-4 text-slate-300" {...props} />,
+                    blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-blue-500/50 pl-4 italic text-slate-400 my-4" {...props} />
+                  }}
+                >
+                    {theoryContent.explanation}
+                </ReactMarkdown>
               </div>
             </section>
 
